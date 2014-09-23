@@ -23,6 +23,8 @@ type Net = ReaderT Bot IO
 -- A wrapper for our socket
 data Bot = Bot { socket :: Handle }
 
+type User = String
+
 main :: IO ()
 main = bracket connect disconnect loop
   where loop = runReaderT run
@@ -94,7 +96,7 @@ listenHelper handle input
         who   = takeWhile (/= '!') . drop 1
 
 -- | Evaluate messages from other users
-eval :: String -> String -> Net ()
+eval :: User -> String -> Net ()
 
 -- allow the bot to quit on command !quit
 eval _ "!quit" = write "QUIT" ":Exiting" >> io (exitWith ExitSuccess)
@@ -120,7 +122,7 @@ actionmsg :: String -> Net ()
 actionmsg s = message $ ' ':':':(chr 0x1):"ACTION " ++ s ++ ((chr 0x1):[])
 
 -- | Pour a beer
-bartender :: String -> String -> String
+bartender :: User -> String -> String
 bartender w s =
   case map toLower s of
     "guinness" -> pour "Guinness"
