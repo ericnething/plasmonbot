@@ -101,10 +101,17 @@ eval :: User -> String -> Net ()
 -- allow the bot to quit on command !quit
 eval _ "!quit" = write "QUIT" ":Exiting" >> io (exitWith ExitSuccess)
 
--- echo back any message prefixed with "!id "
-eval w x | "!id" `isPrefixOf` x = privmsg $ drop 4 x
-         | "!action" `isPrefixOf` x = actionmsg $ drop 8 x
-         | "!beer" `isPrefixOf` x = actionmsg $ bartender w $ drop 6 x
+-- send text to the channel
+eval w x
+
+  -- echo back any message prefixed with "!id "
+  | "!id" `isPrefixOf` x = privmsg $ drop 4 x
+
+  -- perform the action
+  | "!action" `isPrefixOf` x = actionmsg $ drop 8 x
+
+  -- pour a beer
+  | "!beer" `isPrefixOf` x = actionmsg . bartender w $ drop 6 x
 
 -- ignore everything else
 eval _ _ = return ()
