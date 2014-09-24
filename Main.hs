@@ -133,12 +133,12 @@ privmsg s = message "PRIVMSG" s
 actionmsg :: String -> Net ()
 actionmsg s = privmsg . wrapSOH $ ("ACTION " ++ s)
 
--- | Wrap a message with the start-pf-heading character'\SOH'.
+-- | Wrap a message with the start-of-heading character '\SOH'.
 --
 -- To perform a CTCP action on IRC, the protocol specifies that the
 -- message must be wrapped by the start-of-heading character '\SOH'
 -- (represented by ASCII 0x1) like so:
--- `:\SOH ACTION slaps <user> with a trout \SOH`
+-- `:\SOH ACTION <message> \SOH`
 wrapSOH :: String -> String
 wrapSOH s = (chr 0x1):"" ++ s ++ ((chr 0x1):[])
 
