@@ -74,11 +74,11 @@ listen handle =
   -- drop the last item from the input
   (\t -> let s = init t in
 
+    -- echo the event to the console
+    io (putStrLn s) >>
+  
     -- route the data to the proper function
-    listenHelper handle s >>
-    
-    -- output the result to the console
-    io (putStrLn s))
+    listenHelper handle s)
 
 -- | Route the incoming data to the proper utility
 listenHelper :: Handle -> String -> Net ()
@@ -117,16 +117,30 @@ eval w x
 eval _ _ = return ()
 
 -- | Message utility
-message :: String -> Net ()
-message s = write "PRIVMSG" (channel ++ s)
+-- Messages must have the format `<command> <target> :<message>`
+message :: String -> String -> Net ()
+message cmd s = write cmd (channel ++ " :" ++ s)
 
--- | Private message utility
+-- | Notice utility
+noticemsg :: String -> Net ()
+noticemsg s = message "NOTICE" s
+
+-- | Private message (text) utility
 privmsg :: String -> Net ()
-privmsg s = message $ " :" ++ s
+privmsg s = message "PRIVMSG" s
 
 -- | Action message utility
 actionmsg :: String -> Net ()
-actionmsg s = message $ ' ':':':(chr 0x1):"ACTION " ++ s ++ ((chr 0x1):[])
+actionmsg s = privmsg . wrapSOH $ ("ACTION " ++ s)
+
+-- | Wrap a message with the start-pf-heading character'\SOH'.
+--
+-- To perform a CTCP action on IRC, the protocol specifies that the
+-- message must be wrapped by the start-of-heading character '\SOH'
+-- (represented by ASCII 0x1) like so:
+-- `:\SOH ACTION slaps <user> with a trout \SOH`
+wrapSOH :: String -> String
+wrapSOH s = (chr 0x1):"" ++ s ++ ((chr 0x1):[])
 
 -- | Pour a beer
 bartender :: User -> String -> String
